@@ -1,22 +1,20 @@
-import { readFile } from 'node:fs/promises'
-
 import axios from 'axios'
 import { getStore } from '@netlify/blobs'
 import type { Context } from '@netlify/functions'
 
 interface Endpoint {
-    name: string
-    url: string
+	name: string
+	url: string
 }
 
 interface Configuration {
-    endpoints: Endpoint[]
-    webhook_url: string
+	endpoints: Endpoint[]
+	webhook_url: string
 }
 
 interface EndpointReport extends Endpoint {
-    status: number
-    healthy: boolean
+	status: number
+	healthy: boolean
 }
 
 /*
@@ -30,21 +28,21 @@ interface EndpointReport extends Endpoint {
  * extra status information.
  */
 async function pingEndpoint(endpoint: Endpoint): Promise<EndpointReport> {
-    try {
-        const response = await axios.get(endpoint.url)
-    
-        return {
-            ...endpoint,
-            status: response.status,
-            healthy: true
-        }
-    } catch(e) {
-        return {
-            ...endpoint,
-            healthy: false,
-            status: e.response.status
-        }
-    }
+	try {
+		const response = await axios.get(endpoint.url)
+
+		return {
+			...endpoint,
+			status: response.status,
+			healthy: true,
+		}
+	} catch (e) {
+		return {
+			...endpoint,
+			healthy: false,
+			status: e.response.status,
+		}
+	}
 }
 
 /*
@@ -53,14 +51,13 @@ async function pingEndpoint(endpoint: Endpoint): Promise<EndpointReport> {
  * The report is assembled line-by-line and joined together as one.
  */
 function formatReport(endpointReports: EndpointReport[]): string {
-    const endpointStatuses = endpointReports.map((report: EndpointReport): string => {
-        if (report.healthy)
-            return `✅ ${report.name} is healthy (${report.status})`
-        else
-            return `🔥 ${report.name} did not respond normally (${report.status})`
-    })
+	const endpointStatuses = endpointReports.map((report: EndpointReport): string => {
+		if (report.healthy) return `✅ ${report.name} is healthy (${report.status})`
 
-    return endpointStatuses.join('\n')
+		return `🔥 ${report.name} did not respond normally (${report.status})`
+	})
+
+	return endpointStatuses.join('\n')
 }
 
 /*
@@ -71,15 +68,19 @@ function formatReport(endpointReports: EndpointReport[]): string {
  * the available environment variables separately.
  */
 export default async (request: Request, context: Context) => {
-    //const conf: Configuration = require("../config.json")
-    const configurationStore = getStore('functions')
-    const conf: Configuration = await configurationStore.get('config', { type: 'json' })
+	//const conf: Configuration = require("../config.json")
+	const configurationStore = getStore('functions')
+	const conf: Configuration = await configurationStore.get('config', {
+		type: 'json',
+	})
 
-    const pings = await Promise.all(conf.endpoints.map(pingEndpoint))
+	const pings = await Promise.all(conf.endpoints.map(pingEndpoint))
 
-    const report = formatReport(pings)
-    const webhook_url = conf.webhook_url.replace('$DISCORD_WEBHOOK_ID', process.env.DISCORD_WEBHOOK_ID).replace('$DISCORD_WEBHOOK_TOKEN', process.env.DISCORD_WEBHOOK_TOKEN)
-    await axios.post(webhook_url, { content: report })
+	const report = formatReport(pings)
+	const webhook_url = conf.webhook_url
+		.replace('$DISCORD_WEBHOOK_ID', process.env.DISCORD_WEBHOOK_ID)
+		.replace('$DISCORD_WEBHOOK_TOKEN', process.env.DISCORD_WEBHOOK_TOKEN)
+	await axios.post(webhook_url, { content: report })
 
-    return new Response()
+	return new Response()
 }

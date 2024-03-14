@@ -1,18 +1,23 @@
 {
-  "name": "healthcheck",
-  "version": "noversion",
-  "main": "index.js",
-  "repository": "git@github.com:mcataford/healthcheck.git",
-  "author": "Marc Cataford <mcat@riseup.net>",
-  "private": true,
-  "packageManager": "yarn@4.1.1",
-  "devDependencies": {
-    "@types/node": "^20.11.27",
-    "typescript": "^5.4.2"
-  },
-  "dependencies": {
-    "@netlify/blobs": "^7.0.1",
-    "@netlify/functions": "^2.6.0",
-    "axios": "^1.6.7"
-  }
+	"name": "healthcheck",
+	"version": "noversion",
+	"main": "index.js",
+	"repository": "git@github.com:mcataford/healthcheck.git",
+	"author": "Marc Cataford <mcat@riseup.net>",
+	"private": true,
+	"packageManager": "yarn@4.1.1",
+	"scripts": {
+		"lint": "biome lint .; biome format .",
+		"lint:fix": "biome lint . --apply; biome format . --write"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.6.1",
+		"@types/node": "^20.11.27",
+		"typescript": "^5.4.2"
+	},
+	"dependencies": {
+		"@netlify/blobs": "^7.0.1",
+		"@netlify/functions": "^2.6.0",
+		"axios": "^1.6.7"
+	}
 }
