@@ -28,6 +28,8 @@ jobs:
         with:
           node-version: '20.x'
       - run: |
+          corepack enable
+          yarn
           npx netlify-cli deploy --prod
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
